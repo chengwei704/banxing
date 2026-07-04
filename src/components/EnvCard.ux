@@ -1,0 +1,158 @@
+<template>
+  <div class="env-card">
+    <div class="header">
+      <text class="title">🌐 当前环境</text>
+    </div>
+    <div class="body">
+      <div class="item">
+        <text class="label">网络</text>
+        <text class="value blue">{{network}}</text>
+      </div>
+      <div class="item">
+        <text class="label">电量</text>
+        <text class="value">{{battery}}</text>
+      </div>
+     <div class="item">
+  <text class="label">位置</text>
+  <text class="value" style="text-align: right; width: 100%;">{{location}}</text>
+</div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      network: '加载中...',
+      battery: '加载中...',
+      location: '加载中...',
+      timerId: null
+    }
+  },
+
+  onReady() {
+    var self = this
+    // 首次获取
+    self.updateEnvData()
+    // 每5秒更新一次（更实时）
+    self.timerId = setInterval(function() {
+      self.updateEnvData()
+    }, 5000)
+  },
+
+  onDestroy() {
+    if (this.timerId) {
+      clearInterval(this.timerId)
+      this.timerId = null
+    }
+  },
+
+  updateEnvData: function() {
+    var self = this
+
+    // ===== 1. 真实电量 =====
+    try {
+      var battery = require('@system.battery')
+      battery.getBatteryInfo({
+        success: function(res) {
+          var level = Math.round(res.level * 100)
+          self.battery = level + '%'
+        },
+        fail: function() {
+          self.battery = '获取失败'
+        }
+      })
+    } catch (e) {
+      self.battery = '不支持'
+    }
+
+    // ===== 2. 真实网络状态 =====
+    try {
+      var network = require('@system.network')
+      network.getNetworkType({
+        success: function(res) {
+          var map = {
+            'wifi': 'Wi-Fi',
+            '4g': '4G',
+            '5g': '5G',
+            '3g': '3G',
+            '2g': '2G',
+            'none': '无网络'
+          }
+          self.network = map[res.type] || res.type || '未知'
+        },
+        fail: function() {
+          self.network = '获取失败'
+        }
+      })
+    } catch (e) {
+      self.network = '不支持'
+    }
+
+    // ===== 3. 真实位置（GPS） =====
+    try {
+      var geolocation = require('@system.geolocation')
+      geolocation.getLocation({
+        success: function(res) {
+          // 优先显示城市名，其次地址，最后用经纬度
+          if (res.city) {
+            self.location = res.city
+          } else if (res.address) {
+            self.location = res.address
+          } else if (res.latitude && res.longitude) {
+            self.location = '已定位 (' + res.latitude.toFixed(2) + ', ' + res.longitude.toFixed(2) + ')'
+          } else {
+            self.location = '已定位'
+          }
+        },
+        fail: function() {
+          self.location = '定位失败'
+        }
+      })
+    } catch (e) {
+      self.location = '不支持'
+    }
+  }
+}
+</script>
+
+<style>
+.env-card {
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 20px 18px 22px 18px;
+  flex-direction: column;
+  width: 50%;
+}
+.header {
+  margin-bottom: 16px;
+}
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a2a4a;
+}
+.body {
+  flex-direction: row;
+  justify-content: space-between;
+}
+.item {
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+}
+.label {
+  font-size: 12px;
+  color: #8fa3c8;
+  margin-bottom: 4px;
+}
+.value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3a5e;
+}
+.blue {
+  color: #4e7cff;
+}
+</style>

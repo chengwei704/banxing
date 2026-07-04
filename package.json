@@ -1,0 +1,17 @@
+{
+  "name": "tripal",
+  "version": "1.0.0",
+  "description": "伴行无界快应用",
+  "main": "src/app.ux",
+  "scripts": {
+    "build": "hap build",
+    "server": "hap server"
+  },
+  "devDependencies": {
+    "@types/quickapp": "npm:quickapp-interface@^1.0.0",
+    "hap-toolkit": "^2.0.8"
+  },
+  "browserslist": [
+    "chrome 65"
+  ]
+}
