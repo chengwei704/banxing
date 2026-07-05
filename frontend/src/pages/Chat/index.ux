@@ -139,7 +139,7 @@ export default {
 
   callAI: function(userMessage) {
     return new Promise(function(resolve, reject) {
-      fetch('http://10.107.198.142:3000/api/chat', {
+      fetch('http://10.58.98.232:3000/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -151,10 +151,10 @@ export default {
       .then(function(response) {
         return response.json()
       })
-      .then(function(data) {
-        var reply = data.reply || '团团走神了，再问一次吧~'
-        resolve(reply)
-      })
+     .then(function(data) {
+      var reply = data.data?.reply || data.reply || '团团走神了，再问一次吧~'
+      resolve(reply)
+     })
       .catch(function(err) {
         console.error('AI调用失败:', err)
         reject(err)
