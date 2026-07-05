@@ -17,5 +17,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ 后端已启动: http://localhost:${PORT}`);
-  console.log(`📱 手机访问地址: http://<你的电脑IP>:${PORT}`);
+  console.log(`📱 手机访问地址: http://10.107.198.142:${PORT}`);
 });

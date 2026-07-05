@@ -39,7 +39,7 @@ const strategies = {
       const requestBody = {
         inputs: inputs,
         query: userMessage,
-        response_mode: 'blocking',  // 阻塞模式，简单可靠
+        response_mode: 'blocking',  // 阻塞模式
         user: 'tripal-user',        // 固定用户标识，可自定义
       };
       
