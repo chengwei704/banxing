@@ -79,63 +79,94 @@
 
 <script>
 export default {
-data() {
-  var now = new Date()
-  var h = now.getHours()
-  var m = now.getMinutes()
-  var hh = h < 10 ? '0' + h : '' + h
-  var mm = m < 10 ? '0' + m : '' + m
-  var timeStr = hh + ':' + mm
-  return {
-    greetingTime: timeStr,
-    messages: [],
-    inputText: '',
-    batteryLevel:100
-  }
-},
-onReady: function() {
-  var self = this
-  // 获取真实电量
-  try {
-    var battery = require('@system.battery')
-    battery.getBatteryInfo({
-      success: function(res) {
-        self.batteryLevel = Math.round(res.level * 100)
-      },
-      fail: function() {
-        self.batteryLevel = 80
-      }
+  data() {
+    var now = new Date()
+    var h = now.getHours()
+    var m = now.getMinutes()
+    var timeStr = (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m)
+    return {
+      greetingTime: timeStr,
+      messages: [],
+      inputText: '',
+      batteryLevel: 100
+    }
+  },
+
+  onReady: function() {
+    var self = this
+    try {
+      var battery = require('@system.battery')
+      battery.getBatteryInfo({
+        success: function(res) {
+          self.batteryLevel = Math.round(res.level * 100)
+        },
+        fail: function() {
+          self.batteryLevel = 80
+        }
+      })
+    } catch (e) {
+      self.batteryLevel = 80
+    }
+  },
+
+  onInput: function(e) {
+    this.inputText = e.value
+  },
+
+  onSend: function() {
+    var self = this
+    var text = this.inputText.trim()
+    if (!text) return
+    self.sendMessage(text)
+    this.inputText = ''
+  },
+
+  sendMessage: function(input) {
+    var self = this
+    var time = self.getCurrentTime()
+    self.messages.push({ role: 'user', content: input, time: time })
+
+    self.callAI(input).then(function(reply) {
+      self.messages.push({ role: 'assistant', content: reply, time: self.getCurrentTime() })
+    }).catch(function(err) {
+      self.messages.push({
+        role: 'assistant',
+        content: '❌ AI请求失败，请检查网络',
+        time: self.getCurrentTime()
+      })
     })
-  } catch (e) {
-    self.batteryLevel = 80
-  }
-},
-  onInput(e) {
-    this.inputText = e.value;
   },
 
-  onSend() {
-    const text = this.inputText.trim();
-    if (!text) return;
-    this.sendMessage(text);
-    this.inputText = '';
+  callAI: function(userMessage) {
+    return new Promise(function(resolve, reject) {
+      fetch('http://10.107.198.142:3000/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          msg: userMessage
+        })
+      })
+      .then(function(response) {
+        return response.json()
+      })
+      .then(function(data) {
+        var reply = data.reply || '团团走神了，再问一次吧~'
+        resolve(reply)
+      })
+      .catch(function(err) {
+        console.error('AI调用失败:', err)
+        reject(err)
+      })
+    })
   },
 
-  async sendMessage(input) {
-    const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    this.messages.push({ role: 'user', content: input, time });
-    // 模拟AI回复（实际可替换为真实API）
-    const reply = await this.getAIResponse(input);
-    this.messages.push({ role: 'assistant', content: reply, time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) });
-  },
-
-  getAIResponse(input) {
-    // 模拟异步回答
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve('团团收到啦！✨ 我暂时是离线模式，但会一直陪着你。有什么需要随时问我~');
-      }, 800);
-    });
+  getCurrentTime: function() {
+    var now = new Date()
+    var h = now.getHours()
+    var m = now.getMinutes()
+    return (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m)
   }
 }
 </script>
