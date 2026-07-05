@@ -9,12 +9,12 @@
     position: fixed;
     right:16px;
     margin-top:200px;
-    width: 90px; height: 90px; border-radius: 120px;
+    width: 120px; height: 120px; border-radius: 120px;
     justify-content: center; align-items: center;
     border-width: 8px; border-style: solid; border-color: #cccccc;
     background-color: #ffffff;
   }
-  .pigeon-img { width: 55px; height: 55px; }
+  .pigeon-img { width: 100px; height: 100px; }
 
   /* 高电量：浅绿光环 + 振翅飞舞 */
   .halo-high { border-color: #4ADE80; }
