@@ -1,5 +1,6 @@
 <import name="trip-card" src="../../components/TripCard.ux"></import>
 <import name="env-card" src="../../components/EnvCard.ux"></import>
+<import name="pigeon-status" src="../../components/PigeonStatus.ux"></import>
 
 <template>
   <div class="page">
@@ -39,6 +40,9 @@
         <div class="card-wrap">
           <env-card></env-card>
         </div>
+        <!-- 悬浮窗 -->
+        <!-- 鸽子悬浮窗（右侧） -->
+    <pigeon-status battery-level="{{batteryLevel}}"></pigeon-status>
 
         <!-- 动态消息列表 -->
         <div class="msg-row" for="(index, msg) in messages">
@@ -85,7 +89,25 @@ data() {
   return {
     greetingTime: timeStr,
     messages: [],
-    inputText: ''
+    inputText: '',
+    batteryLevel:100
+  }
+},
+onReady: function() {
+  var self = this
+  // 获取真实电量
+  try {
+    var battery = require('@system.battery')
+    battery.getBatteryInfo({
+      success: function(res) {
+        self.batteryLevel = Math.round(res.level * 100)
+      },
+      fail: function() {
+        self.batteryLevel = 80
+      }
+    })
+  } catch (e) {
+    self.batteryLevel = 80
   }
 },
   onInput(e) {
