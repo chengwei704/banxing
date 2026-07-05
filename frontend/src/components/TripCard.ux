@@ -116,7 +116,7 @@ export default {
   margin-top: 10px;
   padding-top: 10px;
   border-top-width: 1px;
-  /* border-top-style: solid; */
+  border-top-style: solid;
   border-top-color: #f0f4fa;
 }
 .progress-text {
