@@ -1,0 +1,647 @@
+<import name="trip-card" src="../../components/TripCard.ux"></import>
+<import name="env-card" src="../../components/EnvCard.ux"></import>
+<import name="pigeon-status" src="../../components/PigeonStatus.ux"></import>
+
+<template>
+  <div class="page">
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+      <div class="nav-left">
+        <text class="brand">✦ 团团</text>
+        <div class="tag"><text class="tag-text">陪你每一程</text></div>
+      </div>
+      <div class="nav-right">
+        <text class="icon">🕊</text>
+      </div>
+    </div>
+
+    <!-- 消息列表 -->
+    <div class="scroll-area">
+      <div class="scroll-inner">
+        <!-- 固定问候语 -->
+        <div class="msg-row">
+          <div class="avatar">
+            <image class="avatar-img" src="/assets/images/avatar.png"></image>
+          </div>
+          <div class="bubble-wrap">
+            <div class="bubble">
+              <text class="bubble-text">你好！我是你的旅行伙伴 团团 ✨{{'\n'}}无论网络如何，我都会陪伴你。{{'\n'}}让每一段旅程都安心又愉快。</text>
+            </div>
+            <text class="bubble-time">{{greetingTime}}</text>
+          </div>
+        </div>
+
+        <!-- 行程卡片 -->
+        <div class="card-wrap">
+          <trip-card></trip-card>
+        </div>
+
+        <!-- 环境卡片 -->
+        <div class="card-wrap">
+          <env-card></env-card>
+        </div>
+        <!-- 悬浮窗 -->
+        <!-- 鸽子悬浮窗（右侧） -->
+    <pigeon-status battery-level="{{batteryLevel}}"></pigeon-status>
+
+        <!-- 动态消息列表 -->
+        <div class="msg-row" for="(index, msg) in messages">
+          <div if="{{msg.role === 'assistant'}}" class="msg-left">
+            <div class="avatar">
+              <image class="avatar-img" src="/assets/images/avatar.png"></image>
+            </div>
+            <div class="bubble-wrap">
+              <div class="bubble"><text class="bubble-text">{{msg.content}}</text></div>
+              <text class="bubble-time">{{msg.time}}</text>
+            </div>
+          </div>
+          <div if="{{msg.role === 'user'}}" class="msg-right">
+            <div class="bubble-wrap">
+              <div class="bubble-user"><text class="bubble-text">{{msg.content}}</text></div>
+              <text class="bubble-time" style="text-align: right;">{{msg.time}}</text>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-space"></div>
+      </div>
+    </div>
+
+    <!-- 输入栏 -->
+    <div class="input-bar">
+      <input class="input-field" type="text" placeholder="说点什么..." value="{{inputText}}" @change="onInput" />
+      <div class="send-btn" @click="onSend">
+        <text class="send-icon">➤</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    var now = new Date()
+    var h = now.getHours()
+    var m = now.getMinutes()
+    var timeStr = (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m)
+    return {
+      greetingTime: timeStr,
+      messages: [],
+      inputText: '',
+      batteryLevel: 100,
+     cityData: {
+        currentCity: '西安',   // 默认城市
+        cities: {
+          '西安': {
+            name: '西安',
+            intro: '十三朝古都，历史文化底蕴深厚，每一步都是故事。',
+            attractions: [
+              { name: '兵马俑', desc: '世界第八大奇迹，震撼的地下军团' },
+              { name: '大唐不夜城', desc: '夜景绝美，仿佛穿越回盛唐' },
+              { name: '西安城墙', desc: '中国现存最完整的古城墙，可以骑自行车' },
+              { name: '陕西历史博物馆', desc: '馆藏丰富，国宝级文物众多' },
+              { name: '大雁塔', desc: '玄奘法师译经处，西安地标' }
+            ],
+            food: [
+              { name: '肉夹馍', desc: '腊汁肉夹白吉馍，香而不腻' },
+              { name: '羊肉泡馍', desc: '掰馍煮肉，汤浓肉烂，老陕最爱' },
+              { name: 'Biangbiang面', desc: '裤带面，油泼辣子香气扑鼻' },
+              { name: '甑糕', desc: '糯米红枣蒸制，甜糯可口' },
+              { name: '凉皮', desc: '酸辣爽口，夏天必吃' }
+            ],
+            tips: [
+              '博物馆记得提前预约，旺季人很多',
+              '洒金桥的美食比回民街主街更地道',
+              '春秋两季最适合来西安，气候宜人'
+            ]
+          },
+          '北京': {
+            name: '北京',
+            intro: '千年帝都，皇家气派与现代繁华交融。',
+            attractions: [
+              { name: '故宫', desc: '世界最大宫殿建筑群，红墙黄瓦' },
+              { name: '八达岭长城', desc: '雄伟壮观，不到长城非好汉' },
+              { name: '颐和园', desc: '皇家园林，湖光山色' },
+              { name: '天坛', desc: '古代祭天建筑群，回音壁神奇' },
+              { name: '什刹海', desc: '老北京风情，胡同四合院' }
+            ],
+            food: [
+              { name: '北京烤鸭', desc: '皮脆肉嫩，片鸭手艺精湛' },
+              { name: '炸酱面', desc: '老北京家常面，酱香浓郁' },
+              { name: '卤煮火烧', desc: '小肠肺头火烧，京味小吃' },
+              { name: '豆汁儿', desc: '老北京特色，酸中带香（挑战味蕾）' }
+            ],
+            tips: [
+              '所有景点必须实名预约，旺季提前7天',
+              '春秋两季最佳，避开节假日人流高峰'
+            ]
+          },
+          '上海': {
+            name: '上海',
+            intro: '东方巴黎，摩登都市与海派文化交汇。',
+            attractions: [
+              { name: '外滩', desc: '万国建筑群，浦江夜景' },
+              { name: '豫园', desc: '江南古典园林，城隍庙小吃' },
+              { name: '陆家嘴', desc: '金融中心，登高俯瞰魔都' },
+              { name: '南京东路', desc: '中华商业第一街，购物天堂' },
+              { name: '迪士尼乐园', desc: '童话世界，亲子必去' }
+            ],
+            food: [
+              { name: '小笼包', desc: '皮薄汤多，轻轻提慢慢吸' },
+              { name: '生煎', desc: '底脆肉嫩，汁水四溢' },
+              { name: '蟹粉汤包', desc: '蟹黄蟹肉，鲜掉眉毛' }
+            ],
+            tips: [
+              '地铁出行最方便，但高峰期挤得可怕',
+              '夏季多雨，随身带伞',
+              '外滩晚上亮灯后最美'
+            ]
+          },
+          '成都': {
+            name: '成都',
+            intro: '天府之国，慢生活与麻辣江湖。',
+            attractions: [
+              { name: '大熊猫基地', desc: '看国宝卖萌，治愈系' },
+              { name: '宽窄巷子', desc: '老成都院落，市井文化' },
+              { name: '锦里', desc: '三国文化街，灯笼夜景' },
+              { name: '人民公园', desc: '鹤鸣茶社，喝盖碗茶掏耳朵' }
+            ],
+            food: [
+              { name: '火锅', desc: '麻辣鲜香，舌尖上的狂欢' },
+              { name: '串串', desc: '竹签上的美味，数签签算账' },
+              { name: '钵钵鸡', desc: '冷锅串串，红油入味' },
+              { name: '担担面', desc: '麻辣鲜香，四川面食代表' },
+              { name: '兔头', desc: '麻辣兔头，啃着过瘾' }
+            ],
+            tips: [
+              '大熊猫基地一定要早去，看熊猫进食',
+              '节假日酒店提前订，人山人海',
+              '春秋最舒服，夏天闷热冬天湿冷'
+            ]
+          },
+          '杭州': {
+            name: '杭州',
+            intro: '人间天堂，西湖烟雨与江南诗意。',
+            attractions: [
+              { name: '西湖', desc: '苏堤春晓、断桥残雪，十景入画' },
+              { name: '灵隐寺', desc: '千年古刹，飞来峰石刻' },
+              { name: '西溪湿地', desc: '绿野仙踪，坐船穿行' },
+              { name: '龙井村', desc: '龙井茶原产地，品茶论道' }
+            ],
+            food: [
+              { name: '西湖醋鱼', desc: '酸甜适口，鱼肉鲜嫩' },
+              { name: '龙井虾仁', desc: '茶香虾仁，清新雅致' },
+              { name: '东坡肉', desc: '肥而不腻，入口即化' },
+              { name: '片儿川', desc: '雪菜笋片肉丝面，杭州家常味' }
+            ],
+            tips: [
+              '周一博物馆闭馆，注意安排行程',
+              '河坊街可以买特产，但景区的龙井茶慎买',
+              '春秋最美，夏热冬冷'
+            ]
+          },
+          '重庆': {
+            name: '重庆',
+            intro: '山城雾都，火锅与魔幻8D城市。',
+            attractions: [
+              { name: '洪崖洞', desc: '千与千寻同款，夜景炸裂' },
+              { name: '李子坝轻轨', desc: '穿楼而过，重庆特色' },
+              { name: '长江索道', desc: '飞越长江，俯瞰山城' },
+              { name: '解放碑', desc: '抗战胜利纪念碑，商业中心' }
+            ],
+            food: [
+              { name: '九宫格火锅', desc: '九种味道，越煮越香' },
+              { name: '重庆小面', desc: '麻辣味足，早餐灵魂' },
+              { name: '辣子鸡', desc: '干香麻辣，下酒神器' }
+            ],
+            tips: [
+              '地形多坡，穿双舒服的鞋',
+              '解放碑附近住宿最方便',
+              '春秋最宜，夏天像蒸笼'
+            ]
+          },
+          '苏州': {
+            name: '苏州',
+            intro: '园林之城，小桥流水与吴侬软语。',
+            attractions: [
+              { name: '拙政园', desc: '中国四大名园之一，移步换景' },
+              { name: '周庄古镇', desc: '东方威尼斯，水巷人家' },
+              { name: '虎丘', desc: '吴中第一名胜，剑池神秘' },
+              { name: '平江路', desc: '历史老街，听评弹喝茶' }
+            ],
+            food: [
+              { name: '松鼠鳜鱼', desc: '酸甜酥脆，形似松鼠' },
+              { name: '生煎包', desc: '皮薄底脆，肉汁丰盈' },
+              { name: '阳澄湖大闸蟹', desc: '秋季限定，蟹黄饱满' }
+            ],
+            tips: [
+              '园林需提前预约，周末人山人海',
+              '春秋最佳，夏季多雨冬季湿冷'
+            ]
+          },
+          '广州': {
+            name: '广州',
+            intro: '羊城花都，美食之都与千年商都。',
+            attractions: [
+              { name: '广州塔', desc: '小蛮腰，俯瞰城市夜景' },
+              { name: '陈家祠', desc: '岭南建筑瑰宝，砖雕精美' },
+              { name: '沙面', desc: '欧陆风情岛，拍照圣地' },
+              { name: '白云山', desc: '羊城第一秀，登高望远' }
+            ],
+            food: [
+              { name: '早茶', desc: '虾饺烧卖凤爪，一盅两件' },
+              { name: '白切鸡', desc: '皮爽肉嫩，原汁原味' },
+              { name: '煲仔饭', desc: '锅巴焦香，腊味油润' },
+              { name: '双皮奶', desc: '奶香浓郁，顺滑如丝' }
+            ],
+            tips: [
+              '夏天炎热潮湿，注意防晒补水',
+              '地铁四通八达，出行方便',
+              '老字号早茶要排队，早点去'
+            ]
+          }
+        }
+      },
+      currentCity:'西安'
+    }
+  },
+
+  onReady: function() {
+    var self = this
+    try {
+      var battery = require('@system.battery')
+      battery.getBatteryInfo({
+        success: function(res) {
+          self.batteryLevel = Math.round(res.level * 100)
+        },
+        fail: function() {
+          self.batteryLevel = 80
+        }
+      })
+    } catch (e) {
+      self.batteryLevel = 80
+    }
+    self.preloadCityData('西安')
+  },
+  preloadCityData: function(city) {
+  var self = this
+  var storage = require('@system.storage')
+
+  // 先检查本地是否有缓存
+  storage.get({
+    key: 'city_西安' + city,
+    success: function(data) {
+      if (data && data.data) {
+        console.log('✅ 从缓存加载城市数据:', city)
+        self.cityData = data.data
+      }
+    },
+    fail: function() {
+      console.log('⏳ 本地无缓存，从后端获取...')
+    }
+  })
+
+  // 从后端获取最新数据并缓存
+  var API_BASE = 'http://10.58.98.232:3000'  // 或者直接写你的IP
+  fetch(API_BASE + '/api/preload?city=' + city, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(function(response) { return response.json() })
+  .then(function(data) {
+    if (data.code === 0) {
+      self.cityData = data.data
+      // 缓存到本地
+      storage.set({
+        key: 'city_' + city,
+        value: data.data,
+        success: function() {
+          console.log('✅ 城市数据已缓存:', city)
+        }
+      })
+    }
+  })
+  .catch(function(err) {
+    console.log('⚠️ 预加载请求失败，可能离线，使用缓存数据')
+  })
+},
+getLocalIP: function() {
+  // 这里改成你实际的 IP
+  return ' 10.58.98.232'  // 替换成你的实际 IP
+},
+
+  onInput: function(e) {
+    this.inputText = e.value
+  },
+
+  onSend: function() {
+    var self = this
+    var text = this.inputText.trim()
+    if (!text) return
+    self.sendMessage(text)
+    this.inputText = ''
+  },
+
+  sendMessage: function(input) {
+  var self = this
+  var time = self.getCurrentTime()
+  self.messages.push({ role: 'user', content: input, time: time })
+
+  // 尝试调用 AI
+  self.callAI(input).then(function(reply) {
+    self.messages.push({ role: 'assistant', content: reply, time: self.getCurrentTime() })
+  }).catch(function(err) {
+    // 请求失败 → 离线模式 → 从缓存读取预加载数据
+    var cachedReply = self.getCachedReply(input)
+    self.messages.push({ role: 'assistant', content: cachedReply, time: self.getCurrentTime() })
+  })
+},
+getCachedReply: function(input) {
+  var cities = {
+    '西安': {
+      name: '西安',
+      intro: '十三朝古都，历史文化底蕴深厚，每一步都是故事。',
+      attractions: ['兵马俑', '大唐不夜城', '西安城墙', '陕西历史博物馆', '大雁塔'],
+      food: ['肉夹馍', '羊肉泡馍', 'Biangbiang面', '甑糕', '凉皮'],
+      tips: ['博物馆提前预约', '洒金桥美食更地道', '春秋最佳']
+    },
+    '北京': {
+      name: '北京',
+      intro: '千年帝都，皇家气派与现代繁华交融。',
+      attractions: ['故宫', '八达岭长城', '颐和园', '天坛', '什刹海'],
+      food: ['北京烤鸭', '炸酱面', '卤煮火烧', '豆汁儿'],
+      tips: ['所有景点实名预约，提前7天', '春秋最佳']
+    },
+    '上海': {
+      name: '上海',
+      intro: '东方巴黎，摩登都市与海派文化交汇。',
+      attractions: ['外滩', '豫园', '陆家嘴', '南京东路', '迪士尼乐园'],
+      food: ['小笼包', '生煎', '蟹粉汤包'],
+      tips: ['地铁出行最方便', '夏季多雨带伞', '外滩夜景最美']
+    },
+    '成都': {
+      name: '成都',
+      intro: '天府之国，慢生活与麻辣江湖。',
+      attractions: ['大熊猫基地', '宽窄巷子', '锦里', '人民公园'],
+      food: ['火锅', '串串', '钵钵鸡', '担担面', '兔头'],
+      tips: ['大熊猫基地早去', '节假日提前订住宿', '春秋最佳']
+    },
+    '杭州': {
+      name: '杭州',
+      intro: '人间天堂，西湖烟雨与江南诗意。',
+      attractions: ['西湖', '灵隐寺', '西溪湿地', '龙井村'],
+      food: ['西湖醋鱼', '龙井虾仁', '东坡肉', '片儿川'],
+      tips: ['周一博物馆闭馆', '景区龙井茶慎买', '春秋最美']
+    },
+    '重庆': {
+      name: '重庆',
+      intro: '山城雾都，火锅与魔幻8D城市。',
+      attractions: ['洪崖洞', '李子坝轻轨', '长江索道', '解放碑'],
+      food: ['九宫格火锅', '重庆小面', '辣子鸡'],
+      tips: ['地形多坡穿舒服的鞋', '解放碑住宿方便', '春秋最宜']
+    },
+    '苏州': {
+      name: '苏州',
+      intro: '园林之城，小桥流水与吴侬软语。',
+      attractions: ['拙政园', '周庄古镇', '虎丘', '平江路'],
+      food: ['松鼠鳜鱼', '生煎包', '阳澄湖大闸蟹'],
+      tips: ['园林需提前预约', '春秋最佳']
+    },
+    '广州': {
+      name: '广州',
+      intro: '羊城花都，美食之都与千年商都。',
+      attractions: ['广州塔', '陈家祠', '沙面', '白云山'],
+      food: ['早茶', '白切鸡', '煲仔饭', '双皮奶'],
+      tips: ['夏天炎热注意防晒', '地铁出行方便', '老字号早茶排队']
+    }
+  }
+
+  // 从 data 中读取当前城市
+  var currentCity = this.cityData.currentCity || '西安'
+  var lower = input.toLowerCase()
+
+  // 检查用户是否想切换城市
+  var cityNames = Object.keys(cities)
+  for (var i = 0; i < cityNames.length; i++) {
+    var cityName = cityNames[i]
+    if (input.indexOf(cityName) !== -1) {
+      // ✅ 保存到数据中
+      this.cityData.currentCity = cityName
+      currentCity = cityName
+      var cityInfo = cities[cityName]
+      return '✨ 好的，切换到' + cityName + '！' + cityInfo.intro + ' 你可以问我推荐景点、美食或注意事项~'
+    }
+  }
+
+  var cityInfo = cities[currentCity]
+
+  // 问候
+  if (lower.indexOf('你好') !== -1 || lower.indexOf('嗨') !== -1 || lower.indexOf('您好') !== -1) {
+    return '😊 你好呀！我是团团，你的旅行伙伴。我在' + currentCity + '，有什么需要随时告诉我~'
+  }
+
+  if (lower.indexOf('谢谢') !== -1 || lower.indexOf('感谢') !== -1) {
+    return '🌸 不客气！祝你在' + currentCity + '玩得开心~'
+  }
+
+  // 景点推荐
+  if (lower.indexOf('景点') !== -1 || lower.indexOf('玩') !== -1 || lower.indexOf('去哪') !== -1) {
+    return '📍 ' + currentCity + '必去景点：' + cityInfo.attractions.join('、')
+  }
+
+  // 美食推荐
+  if (lower.indexOf('吃') !== -1 || lower.indexOf('美食') !== -1 || lower.indexOf('好吃') !== -1) {
+    return '🍜 ' + currentCity + '地道美食：' + cityInfo.food.join('、')
+  }
+
+  // 提示和建议
+  if (lower.indexOf('注意') !== -1 || lower.indexOf('安全') !== -1 || lower.indexOf('建议') !== -1) {
+    return '💡 ' + currentCity + '贴心提醒：' + cityInfo.tips.join('；')
+  }
+
+  // 默认回复
+  return '🕊️ 我在' + currentCity + '，' + cityInfo.intro + ' 你可以问我：推荐景点、推荐美食、有什么注意事项，或者直接告诉我你想去哪座城市~'
+},
+  callAI: function(userMessage) {
+    return new Promise(function(resolve, reject) {
+      reject(new Error('手动触发离线模式'))
+    //   fetch('http://10.58.98.232:3000/api/chat', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({
+    //       msg: userMessage
+    //     })
+    //   })
+    //   .then(function(response) {
+    //     return response.json()
+    //   })
+    //  .then(function(data) {
+    //   var reply = data.data?.reply || data.reply || '团团走神了，再问一次吧~'
+    //   resolve(reply)
+    //  })
+    //   .catch(function(err) {
+    //     console.error('AI调用失败:', err)
+    //     reject(err)
+    //   })
+    })
+  },
+
+  getCurrentTime: function() {
+    var now = new Date()
+    var h = now.getHours()
+    var m = now.getMinutes()
+    return (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m)
+  }
+}
+</script>
+
+<style>
+.page {
+  flex: 1;
+  background-color: #f0f4ff;
+  flex-direction: column;
+}
+
+.nav-bar {
+  height: 56px;
+  padding: 0 16px;
+  background-color: #ffffff;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eef2ff;
+}
+.nav-left {
+  flex-direction: row;
+  align-items: center;
+}
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2a4a;
+}
+.tag {
+  margin-left: 10px;
+  background-color: #eef2ff;
+  border-radius: 12px;
+  padding: 2px 10px;
+}
+.tag-text {
+  font-size: 11px;
+  color: #4e7cff;
+}
+.nav-right {
+  font-size: 22px;
+}
+
+.scroll-area {
+  flex: 1;
+}
+.scroll-inner {
+  padding: 16px 14px;
+  flex-direction: column;
+}
+.msg-row {
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+/* AI消息（左侧）：头像 + 气泡 同行 */
+.msg-left {
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* 用户消息（右侧）：只有气泡 */
+.msg-right {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-end;
+  width: 100%;
+}
+.avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 23px;
+  background-color: #eef2ff;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+.avatar-img {
+  width: 46px;
+  height: 46px;
+}
+.bubble-wrap {
+  flex-direction: column;
+  max-width: 80%;
+}
+.bubble {
+  background-color: #ffffff;
+  border-radius:18px;
+  padding: 14px 16px;
+  margin-bottom: 4px;
+}
+.bubble-user {
+  background-color: #4e7cff;
+  border-radius: 18px ;
+  padding: 14px 16px;
+  margin-bottom: 4px;
+}
+.bubble-user .bubble-text {
+  color: #ffffff;
+}
+.bubble-text {
+  font-size: 14px;
+  color: #2d3a5e;
+  line-height: 24px;
+}
+.bubble-time {
+  font-size: 11px;
+  color: #8fa3c8;
+}
+.card-wrap {
+  margin-bottom: 12px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.bottom-space {
+  height: 8px;
+}
+
+.input-bar {
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 14px 16px 14px;
+  background-color: transparent;
+}
+.input-field {
+  flex: 1;
+  height: 44px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  padding-left: 18px;
+  padding-right: 16px;
+  margin-right: 10px;
+  border: 1px solid rgba(100, 150, 255, 0.2);
+  font-size: 14px;
+  color: #2d3a5e;
+}
+.send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background-color: #4e7cff;
+  align-items: center;
+  justify-content: center;
+}
+.send-icon {
+  font-size: 18px;
+  color: #ffffff;
+}
+</style>

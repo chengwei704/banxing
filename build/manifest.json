@@ -1,0 +1,49 @@
+{
+  "package": "com.banxing.app",
+  "name": "TripPal",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "minPlatformVersion": 1080,
+  "icon": "assets/images/avatar.png",
+  "config": {
+    "logLevel": "off",
+    "debug": true
+  },
+  "features": [
+    {
+      "name": "system.network"
+    },
+    {
+      "name": "system.battery"
+    },
+    {
+      "name": "system.geolocation"
+    }
+  ],
+  "permissions": [
+    {
+      "origin": "*"
+    }
+  ],
+  "router": {
+    "entry": "pages/Chat",
+    "pages": {
+      "pages/Chat": {
+        "component": "index"
+      }
+    }
+  },
+  "display": {
+    "titleBarBackgroundColor": "#4e7cff",
+    "titleBarTextColor": "#ffffff",
+    "titleBarText": "伴行无界"
+  },
+  "packageInfo": {
+    "originType": "quickapp-ide",
+    "toolkit": "2.0.9",
+    "timeStamp": "2026-07-05T01:14:22.067Z",
+    "node": "v22.17.0",
+    "platform": "win32",
+    "arch": "x64"
+  }
+}

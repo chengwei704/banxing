@@ -1,26 +1,11 @@
-.DS_Store
-node_modules
-/dist
-/build
+# 后端环境变量和依赖
+backend/.env
+backend/node_modules/
 
-# sign
+# 根目录误生成的锁文件（如果有）
+package-lock.json
 
-# local env files
-.env.local
-.env.*.local
-
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw*
-.ide
-.quickapp.preview.json
+# 编辑器配置（已有的，补充说明）
+.vscode/
+.ide/
+.idea/
